@@ -1,0 +1,329 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.container {
+    background: #3a3a3a;
+    border-radius: 15px;
+    max-width: 450px;
+    width: 100%;
+    padding: 35px 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.form-section h1 {
+    color: #ff7043;
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 30px;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+input[type="text"],
+select {
+    width: 100%;
+    padding: 16px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    background: #ffffff;
+    color: #333;
+    outline: none;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="text"]:focus {
+    box-shadow: 0 0 0 3px rgba(255, 112, 67, 0.3);
+}
+
+input::placeholder {
+    color: #999;
+}
+
+.select-group {
+    display: flex;
+    gap: 12px;
+}
+
+.select-group select {
+    flex: 1;
+}
+
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'%3E%3Cpath fill='%23333' d='M7 10L2 5h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    cursor: pointer;
+}
+
+select:focus {
+    box-shadow: 0 0 0 3px rgba(255, 112, 67, 0.3);
+}
+
+button[type="submit"] {
+    background: #c97152;
+    color: #ffffff;
+    border: none;
+    padding: 18px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(201, 113, 82, 0.4);
+    touch-action: manipulation;
+}
+
+button[type="submit"]:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(201, 113, 82, 0.4);
+}
+
+button[type="submit"]:disabled {
+    background: #888;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: none;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 10px;
+}
+
+button[type="submit"]:disabled .loading-spinner {
+    display: inline-block;
+}
+
+button[type="submit"]:disabled .button-text {
+    display: none;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 90%;
+    width: 350px;
+    position: relative;
+    animation: slideUp 0.4s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h2 {
+    color: #ffffff;
+    font-size: 28px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.modal-content p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.number-display {
+    background: rgba(255, 255, 255, 0.95);
+    color: #667eea;
+    font-size: 72px;
+    font-weight: bold;
+    padding: 30px;
+    border-radius: 15px;
+    margin: 20px 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: numberPop 0.5s ease 0.3s backwards;
+}
+
+.close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 12px 40px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.8);
+}
+
+.close-btn:active {
+    transform: scale(0.95);
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ffd700;
+    top: -10px;
+    animation: confetti-fall 3s linear infinite;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes numberPop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes confetti-fall {
+    to {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Mobile optimization */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+        padding-top: 30px;
+    }
+
+    .container {
+        padding: 30px 20px;
+        border-radius: 12px;
+    }
+
+    .form-section h1 {
+        font-size: 22px;
+        margin-bottom: 25px;
+    }
+
+    input[type="text"],
+    select {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+
+    button[type="submit"] {
+        padding: 16px;
+        font-size: 17px;
+    }
+
+    .select-group {
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .select-group select {
+        width: 100%;
+    }
+}
+
+/* Very small screens */
+@media (max-width: 360px) {
+    .container {
+        padding: 25px 15px;
+    }
+
+    .form-section h1 {
+        font-size: 20px;
+    }
+
+    input[type="text"],
+    select,
+    button[type="submit"] {
+        font-size: 15px;
+    }
+}
+
+/* Landscape phone */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        padding: 10px;
+        align-items: flex-start;
+    }
+
+    .container {
+        margin: 10px auto;
+    }
+}
+

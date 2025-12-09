@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Đăng Ký</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <h1>ĐĂNG KÝ</h1>
+            <form id="registrationForm">
+                <input type="text" id="name" placeholder="Họ và tên" required>
+                
+                <div class="select-group">
+                    <select id="color" required>
+                        <option value="">Bộ Phận: </option>
+                        <option value="App">App</option>
+                        <option value="Game">Game</option>
+                        <option value="AI">AI</option>
+                        <option value="Hubs">Hubs</option>
+                        <option value="Back Office">Back Office</option>
+                    </select>
+                    
+                </div>
+
+                <button type="submit">
+                    <span class="button-text">Submit</span>
+                    <span class="loading-spinner"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal hiển thị số -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="confetti"></div>
+            <h2>Chúc mừng! 🎉</h2>
+            <p>Số của bạn là:</p>
+            <div class="number-display" id="numberDisplay">0</div>
+            <button class="close-btn" onclick="closeModal()">Đóng</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
