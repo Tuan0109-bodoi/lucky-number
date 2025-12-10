@@ -77,16 +77,35 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     
     // Bước 1: Kiểm tra đã đăng ký chưa
     fetch(`${SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}&department=${encodeURIComponent(department)}`)
-    .then(response => response.json())
-    .then(checkData => {
+    .then(response => response.text())
+    .then(text => {
+        let checkData;
+        try {
+            checkData = JSON.parse(text);
+        } catch (e) {
+            console.error('Response không phải JSON:', text);
+            throw new Error('Lỗi kết nối. Vui lòng thử lại.');
+        }
+        
+        if (checkData.error) {
+            throw new Error(checkData.error);
+        }
+        
         if (checkData.exists) {
             // Đã đăng ký rồi, hiển thị số cũ
             submitButton.disabled = false;
             submitButton.textContent = originalText;
             alert(`Bạn đã đăng ký rồi!\nSố của bạn là: ${checkData.number}`);
             showNumberModal(checkData.number);
-            return;
+            return null; // Signal to skip next then
         }
+        
+        return checkData; // Chưa đăng ký, tiếp tục
+    })
+    .then(checkData => {
+        if (!checkData) return null; // Đã đăng ký rồi, skip
+    .then(checkData => {
+        if (!checkData) return null; // Đã đăng ký rồi, skip
         
         // Bước 2: Chưa đăng ký, tiến hành submit
         submitButton.textContent = 'Đang gửi...';
@@ -104,7 +123,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
         });
     })
     .then(response => {
-        if (!response) return; // Đã đăng ký rồi, skip
+        if (!response) return null; // Đã đăng ký rồi, skip
         return response.text();
     })
     .then(text => {
@@ -128,7 +147,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     })
     .catch((error) => {
         console.error('Error details:', error);
-        alert('Có lỗi xảy ra khi kết nối. Vui lòng thử lại sau.');
+        alert('Có lỗi xảy ra: ' + error.message);
     })
     .finally(() => {
         // Enable button
