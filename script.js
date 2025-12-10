@@ -75,10 +75,16 @@ document.getElementById('registrationForm').addEventListener('submit', function 
     submitButton.disabled = true;
     submitButton.textContent = 'Đang kiểm tra...';
 
+    console.log('Bắt đầu submit:', {name, department});
+
     // Bước 1: Kiểm tra đã đăng ký chưa
     fetch(`${SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}&department=${encodeURIComponent(department)}`)
-        .then(response => response.text())
+        .then(response => {
+            console.log('Check response status:', response.status);
+            return response.text();
+        })
         .then(text => {
+            console.log('Check response text:', text);
             let checkData;
             try {
                 checkData = JSON.parse(text);
@@ -87,12 +93,15 @@ document.getElementById('registrationForm').addEventListener('submit', function 
                 throw new Error('Lỗi kết nối. Vui lòng thử lại.');
             }
 
+            console.log('Check data:', checkData);
+
             if (checkData.error) {
                 throw new Error(checkData.error);
             }
 
             if (checkData.exists) {
                 // Đã đăng ký rồi, hiển thị số cũ
+                console.log('User đã đăng ký, số:', checkData.number);
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
                 alert(`Bạn đã đăng ký rồi!\nSố của bạn là: ${checkData.number}`);
@@ -100,6 +109,7 @@ document.getElementById('registrationForm').addEventListener('submit', function 
                 return null; // Signal to skip next then
             }
 
+            console.log('User chưa đăng ký, tiếp tục submit');
             return checkData; // Chưa đăng ký, tiếp tục
         })
         .then(checkData => {
@@ -115,6 +125,8 @@ document.getElementById('registrationForm').addEventListener('submit', function 
                 deviceId: getDeviceId()
             };
 
+            console.log('Gửi data:', formData);
+
             return fetch(SCRIPT_URL, {
                 method: 'POST',
                 body: JSON.stringify(formData)
@@ -122,12 +134,16 @@ document.getElementById('registrationForm').addEventListener('submit', function 
         })
         .then(response => {
             if (!response) return null; // Đã đăng ký rồi, skip
+            console.log('Submit response status:', response.status);
             return response.text();
         })
         .then(text => {
             if (!text) return; // Đã đăng ký rồi, skip
 
+            console.log('Submit response text:', text);
             const data = JSON.parse(text);
+            console.log('Submit data:', data);
+            
             if (data.result === 'success' && data.randomNumber) {
                 // Lưu số vào localStorage để có thể hiển thị lại
                 localStorage.setItem('lastNumber', data.randomNumber);
