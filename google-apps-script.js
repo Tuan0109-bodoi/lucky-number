@@ -59,6 +59,53 @@ function initializeNumbers() {
 }
 
 function doGet(e) {
+  try {
+    const action = e.parameter.action;
+    
+    // API kiểm tra user đã đăng ký chưa
+    if (action === 'check') {
+      const name = e.parameter.name;
+      const department = e.parameter.department;
+      
+      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const regSheet = ss.getSheetByName('Registrations');
+      
+      if (!regSheet || regSheet.getLastRow() <= 1) {
+        return ContentService.createTextOutput(JSON.stringify({
+          exists: false
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+      
+      const existingData = regSheet.getRange(2, 2, regSheet.getLastRow() - 1, 3).getValues();
+      
+      for (let row of existingData) {
+        const existingName = String(row[0]).trim().toLowerCase();
+        const existingDepartment = String(row[1]).trim().toLowerCase();
+        const existingNumber = row[2];
+        
+        if (existingName === name.trim().toLowerCase() && 
+            existingDepartment === department.trim().toLowerCase()) {
+          return ContentService.createTextOutput(JSON.stringify({
+            exists: true,
+            number: existingNumber
+          })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        exists: false
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    return ContentService.createTextOutput("Google Apps Script đang hoạt động!");
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+      error: error.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet(e) {
   return ContentService.createTextOutput("Google Apps Script đang hoạt động!");
 }
 
@@ -103,19 +150,23 @@ function doPost(e) {
     // Parse dữ liệu từ request
     const data = JSON.parse(e.postData.contents);
     const deviceId = data.deviceId || '';
+    const name = data.name.trim();
+    const department = data.department.trim();
     
-    // TẠM TẮT - Kiểm tra xem device đã đăng ký chưa
-    // if (regSheet.getLastRow() > 1 && deviceId) {
-    //   const existingData = regSheet.getRange(2, 5, regSheet.getLastRow() - 1, 1).getValues();
-    //   
-    //   for (let row of existingData) {
-    //     const existingDeviceId = String(row[0]);
-    //     
-    //     if (existingDeviceId === deviceId) {
-    //       throw new Error('Thiết bị này đã đăng ký rồi! Mỗi thiết bị chỉ được đăng ký 1 lần.');
-    //     }
-    //   }
-    // }
+    // Kiểm tra trùng họ tên VÀ đơn vị
+    if (regSheet.getLastRow() > 1) {
+      const existingData = regSheet.getRange(2, 2, regSheet.getLastRow() - 1, 2).getValues();
+      
+      for (let row of existingData) {
+        const existingName = String(row[0]).trim();
+        const existingDepartment = String(row[1]).trim();
+        
+        if (existingName.toLowerCase() === name.toLowerCase() && 
+            existingDepartment.toLowerCase() === department.toLowerCase()) {
+          throw new Error('Họ tên "' + name + '" trong bộ phận "' + department + '" đã đăng ký rồi!');
+        }
+      }
+    }
     
     // Tìm số đầu tiên chưa được sử dụng
     const numbersData = numbersSheet.getRange(2, 1, numbersSheet.getLastRow() - 1, 4).getValues();

@@ -66,41 +66,55 @@ function markAsSubmitted() {
 document.getElementById('registrationForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    // TẠM TẮT - Kiểm tra đã submit chưa
-    // if (checkAlreadySubmitted()) {
-    //     alert('Bạn đã đăng ký rồi! Mỗi người chỉ được đăng ký 1 lần.');
-    //     return;
-    // }
-    
     const submitButton = this.querySelector('button[type="submit"]');
     const originalText = submitButton.textContent;
+    const name = document.getElementById('name').value;
+    const department = document.getElementById('color').value;
     
     // Disable button và hiển thị loading
     submitButton.disabled = true;
-    submitButton.textContent = 'Đang gửi...';
+    submitButton.textContent = 'Đang kiểm tra...';
     
-    const formData = {
-        name: document.getElementById('name').value,
-        department: document.getElementById('color').value,
-        timestamp: new Date().toLocaleString('vi-VN'),
-        deviceId: getDeviceId()
-    };
+    // Bước 1: Kiểm tra đã đăng ký chưa
+    fetch(`${SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}&department=${encodeURIComponent(department)}`)
+    .then(response => response.json())
+    .then(checkData => {
+        if (checkData.exists) {
+            // Đã đăng ký rồi, hiển thị số cũ
+            submitButton.disabled = false;
+            submitButton.textContent = originalText;
+            alert(`Bạn đã đăng ký rồi!\nSố của bạn là: ${checkData.number}`);
+            showNumberModal(checkData.number);
+            return;
+        }
+        
+        // Bước 2: Chưa đăng ký, tiến hành submit
+        submitButton.textContent = 'Đang gửi...';
+        
+        const formData = {
+            name: name,
+            department: department,
+            timestamp: new Date().toLocaleString('vi-VN'),
+            deviceId: getDeviceId()
+        };
 
-    // Gửi dữ liệu đến Google Sheets và nhận số ngẫu nhiên
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(formData)
+        return fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        });
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response) return; // Đã đăng ký rồi, skip
+        return response.text();
+    })
     .then(text => {
+        if (!text) return; // Đã đăng ký rồi, skip
+        
         const data = JSON.parse(text);
         if (data.result === 'success' && data.randomNumber) {
             // Lưu số vào localStorage để có thể hiển thị lại
             localStorage.setItem('lastNumber', data.randomNumber);
             localStorage.setItem('lastNumberTime', Date.now());
-            
-            // TẠM TẮT - Đánh dấu đã submit
-            // markAsSubmitted();
             
             // Hiển thị số trong modal đẹp
             showNumberModal(data.randomNumber);
@@ -114,7 +128,7 @@ document.getElementById('registrationForm').addEventListener('submit', function(
     })
     .catch((error) => {
         console.error('Error details:', error);
-        alert('Có lỗi xảy ra khi kết nối. Vui lòng kiểm tra:\n1. URL Google Apps Script đúng chưa\n2. Đã deploy Web App chưa\n3. Mở Console (F12) để xem chi tiết lỗi');
+        alert('Có lỗi xảy ra khi kết nối. Vui lòng thử lại sau.');
     })
     .finally(() => {
         // Enable button
