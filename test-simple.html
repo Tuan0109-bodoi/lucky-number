@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Simple</title>
+</head>
+<body>
+    <h1>Test Submit</h1>
+    <button onclick="testSubmit()">Test Submit</button>
+    <div id="result"></div>
+
+    <script>
+        // THAY URL NÀY BẰNG URL DEPLOYMENT CỦA BẠN
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyTtBaeau7TkvgGi1divOB5rio8DuMp-kp2itOSwuGyJxBU-xE1MKTsh0usjcdCVW3/exec';
+        
+        function testSubmit() {
+            console.log('Testing...');
+            document.getElementById('result').innerHTML = 'Đang gửi...';
+            
+            const data = {
+                name: 'Test User',
+                department: 'Test Dept',
+                timestamp: new Date().toLocaleString('vi-VN'),
+                deviceId: 'test123'
+            };
+            
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log('Status:', response.status);
+                return response.text();
+            })
+            .then(text => {
+                console.log('Response:', text);
+                document.getElementById('result').innerHTML = '<pre>' + text + '</pre>';
+                
+                try {
+                    const jsonData = JSON.parse(text);
+                    if (jsonData.randomNumber) {
+                        alert('Số: ' + jsonData.randomNumber);
+                    }
+                } catch(e) {
+                    console.error('Not JSON:', e);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('result').innerHTML = 'Lỗi: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>

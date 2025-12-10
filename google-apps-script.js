@@ -113,14 +113,17 @@ function doPost(e) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    // Lấy sheet Registrations (dev only)
+    // Lấy hoặc tạo sheet Registrations (dev only)
     let regSheet = ss.getSheetByName('Registrations');
     if (!regSheet) {
       regSheet = ss.insertSheet('Registrations');
       regSheet.appendRow(['Thời gian', 'Họ và tên', 'Bộ phận', 'Số bốc được', 'Device ID']);
+    } else if (regSheet.getLastRow() === 0) {
+      // Sheet bị xóa hết data, tạo lại header
+      regSheet.appendRow(['Thời gian', 'Họ và tên', 'Bộ phận', 'Số bốc được', 'Device ID']);
     }
     
-    // Lấy sheet Danh sách (hiển thị công khai)
+    // Lấy hoặc tạo sheet Danh sách (hiển thị công khai)
     let publicSheet = ss.getSheetByName('Danh sách');
     if (!publicSheet) {
       publicSheet = ss.insertSheet('Danh sách');
@@ -139,12 +142,40 @@ function doPost(e) {
       publicSheet.setColumnWidth(3, 150); // Bộ phận
       publicSheet.setColumnWidth(4, 100); // Số
       publicSheet.setColumnWidth(5, 180); // Thời gian
+    } else if (publicSheet.getLastRow() === 0) {
+      // Sheet bị xóa hết data, tạo lại header và format
+      publicSheet.appendRow(['STT', 'Họ và tên', 'Bộ phận', 'Số bốc được', 'Thời gian']);
+      const headerRange = publicSheet.getRange(1, 1, 1, 5);
+      headerRange.setBackground('#4285f4');
+      headerRange.setFontColor('#ffffff');
+      headerRange.setFontWeight('bold');
+      headerRange.setHorizontalAlignment('center');
     }
     
-    // Lấy sheet Numbers
-    const numbersSheet = ss.getSheetByName('Numbers');
+    // Lấy sheet Numbers - NẾU KHÔNG CÓ HOẶC BỊ XÓA, TỰ ĐỘNG TẠO LẠI
+    let numbersSheet = ss.getSheetByName('Numbers');
     if (!numbersSheet || numbersSheet.getLastRow() <= 1) {
-      throw new Error('Chưa khởi tạo danh sách số! Vui lòng chạy function initializeNumbers() trong Apps Script.');
+      Logger.log('Sheet Numbers không tồn tại hoặc bị xóa, tự động khởi tạo lại...');
+      
+      if (!numbersSheet) {
+        numbersSheet = ss.insertSheet('Numbers');
+      } else {
+        numbersSheet.clear();
+      }
+      
+      // Tự động tạo 140 số shuffle
+      const numbers = Array.from({length: 140}, (_, i) => i + 1);
+      for (let i = numbers.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+      }
+      
+      numbersSheet.appendRow(['Số', 'Đã dùng', 'Người dùng', 'Thời gian']);
+      numbers.forEach(num => {
+        numbersSheet.appendRow([num, 'Chưa', '', '']);
+      });
+      
+      Logger.log('Đã tự động tạo lại ' + numbers.length + ' số!');
     }
     
     // Parse dữ liệu từ request

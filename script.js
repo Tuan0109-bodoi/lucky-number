@@ -40,7 +40,8 @@ function updateCountdown() {
 // 6. Who has access: Anyone
 // 7. Copy URL và thay thế vào SCRIPT_URL bên dưới
 
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzyTtBaeau7TkvgGi1divOB5rio8DuMp-kp2itOSwuGyJxBU-xE1MKTsh0usjcdCVW3/exec'; // Thay bằng URL từ Google Apps Script
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwoQCBAOAJ3GLxSBCGvcXl1o8ciCgrL7BhGraWgqUPAvF_LzuP9VqlfdJMP4Wz-Bam0/exec'; // Thay bằng URL từ Google Apps Script
+const ENABLE_CHECK_API = false; // Tạm tắt check API để test submit
 
 // Tạo hoặc lấy Device ID (để tránh 1 thiết bị submit nhiều lần)
 function getDeviceId() {
@@ -67,15 +68,63 @@ document.getElementById('registrationForm').addEventListener('submit', function 
     e.preventDefault();
 
     const submitButton = this.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
+    const buttonText = submitButton.querySelector('.button-text');
+    const originalText = buttonText.textContent;
     const name = document.getElementById('name').value;
     const department = document.getElementById('color').value;
 
     // Disable button và hiển thị loading
     submitButton.disabled = true;
-    submitButton.textContent = 'Đang kiểm tra...';
+    buttonText.textContent = 'Đang gửi...';
 
     console.log('Bắt đầu submit:', {name, department});
+
+    // TẠM THỜI: Bỏ qua check API nếu bị lỗi deployment
+    if (!ENABLE_CHECK_API) {
+        console.log('Bỏ qua check API, submit trực tiếp');
+        
+        const formData = {
+            name: name,
+            department: department,
+            timestamp: new Date().toLocaleString('vi-VN'),
+            deviceId: getDeviceId()
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            console.log('Submit response status:', response.status);
+            return response.text();
+        })
+        .then(text => {
+            console.log('Submit response text:', text);
+            const data = JSON.parse(text);
+            console.log('Submit data:', data);
+            
+            if (data.result === 'success' && data.randomNumber) {
+                localStorage.setItem('lastNumber', data.randomNumber);
+                localStorage.setItem('lastNumberTime', Date.now());
+                showNumberModal(data.randomNumber);
+                document.getElementById('registrationForm').reset();
+            } else if (data.result === 'error') {
+                alert('Có lỗi xảy ra: ' + (data.error || 'Vui lòng thử lại'));
+            } else {
+                alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
+            }
+        })
+        .catch((error) => {
+            console.error('Error details:', error);
+            alert('Có lỗi xảy ra: ' + error.message);
+        })
+        .finally(() => {
+            submitButton.disabled = false;
+            buttonText.textContent = originalText;
+        });
+        
+        return; // Dừng ở đây, không chạy code check API phía dưới
+    }
 
     // Bước 1: Kiểm tra đã đăng ký chưa
     fetch(`${SCRIPT_URL}?action=check&name=${encodeURIComponent(name)}&department=${encodeURIComponent(department)}`)
@@ -103,7 +152,7 @@ document.getElementById('registrationForm').addEventListener('submit', function 
                 // Đã đăng ký rồi, hiển thị số cũ
                 console.log('User đã đăng ký, số:', checkData.number);
                 submitButton.disabled = false;
-                submitButton.textContent = originalText;
+                buttonText.textContent = originalText;
                 alert(`Bạn đã đăng ký rồi!\nSố của bạn là: ${checkData.number}`);
                 showNumberModal(checkData.number);
                 return null; // Signal to skip next then
@@ -116,7 +165,7 @@ document.getElementById('registrationForm').addEventListener('submit', function 
             if (!checkData) return null; // Đã đăng ký rồi, skip
 
             // Bước 2: Chưa đăng ký, tiến hành submit
-            submitButton.textContent = 'Đang gửi...';
+            // Button text và spinner đã được set từ đầu
 
             const formData = {
                 name: name,
@@ -166,7 +215,7 @@ document.getElementById('registrationForm').addEventListener('submit', function 
         .finally(() => {
             // Enable button
             submitButton.disabled = false;
-            submitButton.textContent = originalText;
+            buttonText.textContent = originalText;
         });
 });
 
